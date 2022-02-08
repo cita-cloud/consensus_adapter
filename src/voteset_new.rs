@@ -1,10 +1,9 @@
-use crate::interface::{Writer, VIEW, SOURCE, TIME_INTERNAL, DATA, JSON_DATA, MaterializeOperator};
+use crate::interface::{VIEW, SOURCE, TIME_INTERNAL, DATA, JSON_DATA, MaterializeOperator};
 use r2d2_postgres::r2d2::{Pool, PooledConnection};
 use r2d2_postgres::PostgresConnectionManager;
 use postgres::{NoTls, Row};
 use std::fs::File;
-use crate::json_file;
-use crate::util::{append_file, create_or_truncate_file, drop_sql, pool, select_sql};
+use crate::util::{append_file, create_or_truncate_file, drop_sql, pool, select_sql, json_file};
 use std::path::PathBuf;
 use std::io::Write;
 use cita_types::{Address, H256};
@@ -95,7 +94,7 @@ impl VoteCollector {
         ) {
             let mut voteset: VoteSet = VoteSet::new();
             for row in rows {
-                let vote: VoteEntity = serde_json::from_value(row.get("data")).unwrap();
+                let vote: VoteEntity = serde_json::from_value(row.get(DATA)).unwrap();
                 voteset.add(vote.address, &vote.vote);
             }
             Some(voteset)

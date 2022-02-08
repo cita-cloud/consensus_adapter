@@ -1,6 +1,5 @@
 use cita_types::Address;
-use crate::util::{create_or_truncate_file, create_source_sql, create_view_sql, pool, append_file, drop_sql, select_sql};
-use crate::json_file;
+use crate::util::{create_or_truncate_file, create_source_sql, create_view_sql, pool, append_file, drop_sql, select_sql, json_file};
 use crate::params::BftParams;
 use postgres::{Row, NoTls};
 use std::io::Write;
@@ -9,7 +8,7 @@ use std::thread;
 use std::time::Duration;
 use r2d2_postgres::r2d2::{Pool, PooledConnection};
 use r2d2_postgres::PostgresConnectionManager;
-use crate::interface::{Writer, VIEW, SOURCE, DATA, TIME_INTERNAL, MaterializeOperator};
+use crate::interface::{VIEW, SOURCE, DATA, TIME_INTERNAL, MaterializeOperator};
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -47,6 +46,7 @@ impl AuthorityManage {
         let name = Self::name();
         let name = name.as_str();
         let file_name = json_file(name);
+
         let mut auth_manage = AuthorityManage {
             pool,
             aof_file: append_file(&file_name),

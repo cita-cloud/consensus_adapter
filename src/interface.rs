@@ -1,10 +1,9 @@
 use std::path::PathBuf;
-use crate::util::{create_or_truncate_file, drop_sql, create_source_sql, create_view_sql, append_file};
+use crate::util::{create_or_truncate_file, drop_sql, create_source_sql, create_view_sql, append_file, json_file};
 use r2d2_postgres::r2d2::{Pool, PooledConnection};
 use r2d2_postgres::PostgresConnectionManager;
 use postgres::{NoTls, Client};
 use std::fs::File;
-use crate::json_file;
 use std::io::Write;
 use serde::Serialize;
 
@@ -21,7 +20,6 @@ pub trait MaterializeOperator<T: Serialize> {
     fn client(&self) -> PooledConnection<PostgresConnectionManager<NoTls>>;
 
     fn clear(&self, name: &str, file_name: &PathBuf) {
-        create_or_truncate_file(file_name);
         let mut client = self.client();
         client.batch_execute(drop_sql(VIEW, name).as_str()).unwrap();
         client.batch_execute(drop_sql(SOURCE, name).as_str()).unwrap();
