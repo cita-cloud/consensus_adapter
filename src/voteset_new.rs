@@ -40,7 +40,7 @@ impl MaterializeOperator<VoteEntity> for VoteCollector {
         self.aof_file.write_all("\n".as_bytes());
     }
 
-    fn create_view_sql(&self, name: &str) -> String {
+    fn create_view_sql(&self) -> String {
         format!(r#"CREATE MATERIALIZED VIEW IF NOT EXISTS {0}_{1} AS
             SELECT DISTINCT ON (
                 CAST(CAST(CAST(CAST({2} AS jsonb) -> 'vote' as jsonb) -> 'vote' as jsonb)->'height' as integer),
@@ -74,8 +74,8 @@ impl VoteCollector {
             pool,
             aof_file: append_file(&file_name),
         };
-        vote_collector.clear(name, &file_name);
-        vote_collector.create(name, &file_name);
+        vote_collector.clear();
+        vote_collector.create(&file_name);
         vote_collector
     }
 

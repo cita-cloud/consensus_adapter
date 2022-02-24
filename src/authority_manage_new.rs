@@ -52,9 +52,9 @@ impl AuthorityManage {
             aof_file: append_file(&file_name),
         };
 
-        auth_manage.clear(name, &file_name);
+        auth_manage.clear();
 
-        auth_manage.create(name, &file_name);
+        auth_manage.create(&file_name);
 
         auth_manage
     }

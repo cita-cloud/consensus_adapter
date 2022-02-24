@@ -19,21 +19,21 @@ pub trait MaterializeOperator<T: Serialize> {
 
     fn client(&self) -> PooledConnection<PostgresConnectionManager<NoTls>>;
 
-    fn clear(&self, name: &str, file_name: &PathBuf) {
+    fn clear(&self) {
         let mut client = self.client();
-        client.batch_execute(drop_sql(VIEW, name).as_str()).unwrap();
-        client.batch_execute(drop_sql(SOURCE, name).as_str()).unwrap();
+        client.batch_execute(drop_sql(VIEW, Self::name().as_str()).as_str()).unwrap();
+        client.batch_execute(drop_sql(SOURCE, Self::name().as_str()).as_str()).unwrap();
     }
 
-    fn create(&self, name: &str, file_name: &PathBuf) {
+    fn create(&self, file_name: &PathBuf) {
         let mut client = self.client();
-        client.batch_execute(self.create_source_sql(name, &file_name.display().to_string(), TIME_INTERNAL).as_str()).unwrap();
-        client.batch_execute(self.create_view_sql(name).as_str()).unwrap();
+        client.batch_execute(self.create_source_sql(&file_name.display().to_string(), TIME_INTERNAL).as_str()).unwrap();
+        client.batch_execute(self.create_view_sql().as_str()).unwrap();
     }
 
     fn write_json(&mut self, entity: &T);
 
-    fn create_view_sql(&self, name: &str) -> String {
+    fn create_view_sql(&self) -> String {
         format!(r#"
             CREATE MATERIALIZED VIEW IF NOT EXISTS {0}_{1} AS
             SELECT CAST({2} AS JSONB) AS {2}
@@ -41,17 +41,17 @@ pub trait MaterializeOperator<T: Serialize> {
                 SELECT CONVERT_FROM({3}, 'utf8') AS {2}
                 FROM {0}_{4}
             );
-        "#,  name, VIEW, DATA, JSON_DATA, SOURCE)
+        "#,  Self::name(), VIEW, DATA, JSON_DATA, SOURCE)
     }
 
 
-    fn create_source_sql(&self, name: &str, file_name: &str, time_internal: u64) -> String {
+    fn create_source_sql(&self, file_name: &str, time_internal: u64) -> String {
         format!(r#"
             CREATE SOURCE IF NOT EXISTS {1}_{2} ({0})
             FROM FILE '{3}'
             WITH (tail = true, timestamp_frequency_ms = {4})
             FORMAT BYTES;
-        "#, JSON_DATA, name, SOURCE, file_name, time_internal)
+        "#, JSON_DATA, Self::name(), SOURCE, file_name, time_internal)
     }
 
 }
